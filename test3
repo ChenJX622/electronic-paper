@@ -1,0 +1,74 @@
+#include "hal_data.h"
+#include "max9814.h"
+#include <stdio.h>
+#include "ADC_MY.h"
+
+static volatile bool uart_tx_done = false;
+
+void uart7_callback(uart_callback_args_t * p_args)
+{
+    if (UART_EVENT_TX_COMPLETE == p_args->event) uart_tx_done = true;
+}
+
+//void adc0_callback(adc_callback_args_t *p_args) {(void)p_args;}
+void uart8_callback(uart_callback_args_t *p_args) {(void)p_args;}
+void uart3_callback(uart_callback_args_t *p_args) {(void)p_args;}
+void gpt0_overflow_callback(timer_callback_args_t *p_args) {(void)p_args;}
+void sci_i2c2_master_callback(i2c_master_callback_args_t *p_args) {(void)p_args;}
+
+int fputc(int ch, FILE *f)
+{
+    (void)f;
+    uart_tx_done = false;
+    g_uart7.p_api->write(g_uart7.p_ctrl, (const uint8_t *)&ch, 1);
+    volatile uint32_t timeout = 10000;
+    while((!uart_tx_done) && (timeout-- > 0));
+    return ch;
+}
+uint32_t adc_num=0;
+void hal_entry(void)
+{
+//    fsp_err_t err;
+//    uint16_t adc_val;
+//    uint32_t cnt = 0;
+		
+		ADC_Init();
+
+//    R_BSP_SoftwareDelay(2000, BSP_DELAY_UNITS_MILLISECONDS);
+
+//    err = g_uart7.p_api->open(g_uart7.p_ctrl, g_uart7.p_cfg);
+//    if(FSP_SUCCESS != err) while(1);
+//    printf("\r\nMAX9814 Test Start\r\n");
+
+//    err = max9814_init();
+//    if(FSP_SUCCESS != err)
+//    {
+//        printf("Init Fail: %d\r\n", err);
+//        while(1);
+//    }
+//    printf("Init OK\r\n");
+		
+		
+
+    while(1)
+    {
+			adc_num=Read_ADC_Voltage_Value();
+
+//        cnt++;
+//        err = max9814_record(&adc_val, 1);
+//        if(FSP_SUCCESS == err)
+//        {
+////            printf("[%04d] ADC: %d | Volt: %.3fV\r\n", cnt, adc_val, (float)adc_val * 3.3f / 4095.0f);
+//					printf("[%04d] ADC: %d | Volt: %.3fV\r\n", cnt, adc_val, Read_ADC_Voltage_Value());
+//        }
+//        else
+//        {
+//            printf("[%04d] Read Fail: %d\r\n", cnt, err);
+//        }
+//        R_BSP_SoftwareDelay(100, BSP_DELAY_UNITS_MILLISECONDS);
+    }
+
+#if BSP_TZ_SECURE_BUILD
+    R_BSP_NonSecureEnter();
+#endif
+}
